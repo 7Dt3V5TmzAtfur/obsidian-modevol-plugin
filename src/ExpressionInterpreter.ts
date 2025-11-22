@@ -3,11 +3,13 @@ import { Label } from "./Label";
 
 // todo: 先做效果，做改匹配规则
 export default class ExpressionInterpreter {
-    static tag_reg = /^#([devtc])(?=\s)(.*|$)/
+    static tag_reg = /^#([dsqevtc])(?=\s)(.*|$)/
     getLabel(regArray: RegExpExecArray): Label | undefined {
         let tag = regArray[1].toLowerCase()
         switch (tag) {
             case 'd':
+			case 's':
+			case 'q':
             case 'e':
             case 'v':
             case 't':
@@ -29,6 +31,14 @@ function normalInterpter(regArray: RegExpExecArray) {
         case 'd':
             label.type = "d"
             label.tagName = "描述"
+            break
+		case 's':
+            label.type = "s"
+            label.tagName = "总结"
+            break
+        case 'q':
+            label.type = "q"
+            label.tagName = "提问"
             break
         case 'e':
             label.type = "e"

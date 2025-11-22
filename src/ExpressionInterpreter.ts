@@ -30,7 +30,7 @@ function normalInterpter(regArray: RegExpExecArray) {
     switch (tag) {
         case 'd':
             label.type = "d"
-            label.tagName = "描述"
+            label.tagName = "定义"
             break
 		case 's':
             label.type = "s"

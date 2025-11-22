@@ -79,6 +79,8 @@ export default class ModevolPlugin extends Plugin {
 	}
 	editorChange(editor: Editor, info: MarkdownView | MarkdownFileInfo) {
 		let dNum = 0
+		let sNum = 0
+		let qNum = 0
 		let cNum = 0
 		let eNum = 0
 		let tNum = 0
@@ -87,6 +89,12 @@ export default class ModevolPlugin extends Plugin {
 			switch (label.type) {
 				case 'd':
 					dNum++;
+					break;
+				case 's':
+					sNum++;
+					break;
+				case 'q':
+					qNum++;
 					break;
 				case 'e':
 					eNum++;
@@ -105,6 +113,12 @@ export default class ModevolPlugin extends Plugin {
 		let content =""
 		if (dNum > 0){
 			content += " 描述 "+dNum
+		}
+		if (sNum > 0){
+			content += " 总结 "+sNum
+		}
+		if (qNum > 0){
+			content += " 提问 "+qNum
 		}
 		if (eNum > 0){
 			content += " 例子 "+eNum
@@ -159,6 +173,8 @@ function MarkdownPostProcessor(element: HTMLElement, context: MarkdownPostProces
 		
 		switch (tag.textContent) {
 			case '#d':
+			case '#s':
+			case '#q':
 			case '#e':
 			case '#v':
 			case '#t':

@@ -1,4 +1,10 @@
 # Obsidian Modevol plugin
+
+### todo list
+增加obsidian 插件配置面板，在obsidian插件面板中，自定义增加标签字母、对应的文本颜色和svg图案，以适应不同标签体系下颜色自定义。
+
+
+
 ### Function：an Obsidian plugin for fit [modevol](https://www.modevol.com/) style.
 
 [x] Edit a state field for DETCV label.
@@ -18,6 +24,10 @@
 #e Example 例子 
 
 #t  Transfer 迁移     
+
+#s Summary  总结
+
+#q Question 提问
 
 ![image](https://user-images.githubusercontent.com/12016782/218115364-1aaf0e6f-a14e-4614-afd2-4061e8d741c7.png)
 

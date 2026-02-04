@@ -15,14 +15,19 @@ import ExpressionInterpreter from "src/ExpressionInterpreter";
 import { Label } from "./Label";
 import { ModelvolLabelWidget } from "src/ModevolWidget";
 import { store } from "./store";
+import { LabelConfig } from "./settings";
 
+// 全局变量存储标签配置，由插件初始化时设置
+let globalLabelConfigs: LabelConfig[] = [];
 
-
-let interpreter = new ExpressionInterpreter()
+export function setLabelConfigs(configs: LabelConfig[]) {
+  globalLabelConfigs = configs;
+}
 
 function getDecoration(doc: Text, selection?: EditorSelection) {
   const builder = new RangeSetBuilder<Decoration>();
-  var list:Label[] = []
+  const interpreter = new ExpressionInterpreter(globalLabelConfigs);
+  var list: Label[] = []
   let pos = 0;
   let select = selection?.main
   let selectFrom = select ? select.from : 0
@@ -32,13 +37,13 @@ function getDecoration(doc: Text, selection?: EditorSelection) {
     let regMatchL = ExpressionInterpreter.tag_reg.exec(line)
     if (regMatchL == null) {
       pos += line.length + 1;
-      lineNum ++;
+      lineNum++;
       continue;
     }
     let label = interpreter.getLabel(regMatchL)
     if (label == undefined) {
       pos += line.length + 1
-      lineNum ++;
+      lineNum++;
       continue
     }
     label.pos = pos
@@ -48,12 +53,12 @@ function getDecoration(doc: Text, selection?: EditorSelection) {
     let to = label.type == 'c' ? from + 3 + label.tagName.length : from + 2
     let isSelect = selectFrom > pos - 1 && selectTo < pos + line.length + 1;
     if (label.type == 'c' && isSelect) {
-      let tagMark = Decoration.mark({class:' mv-label-active'})
-     
+      let tagMark = Decoration.mark({ class: ' mv-label-active' })
+
       builder.add(from, to, tagMark)
-      
+
       pos += line.length + 1
-      lineNum ++;
+      lineNum++;
       continue
     }
 
@@ -64,7 +69,7 @@ function getDecoration(doc: Text, selection?: EditorSelection) {
     builder.add(from, to, replace)
 
     pos += line.length + 1
-    lineNum ++;
+    lineNum++;
   }
   store.labels = list
   return builder.finish();

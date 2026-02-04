@@ -1,7 +1,7 @@
 # Obsidian Modevol plugin
 
-### todo list
-增加obsidian 插件配置面板，在obsidian插件面板中，自定义增加标签字母、对应的文本颜色和svg图案，以适应不同标签体系下颜色自定义。
+### 本版本修订 
+[x] 增加obsidian 插件配置面板，在obsidian插件面板中，自定义增加标签字母、对应的文本颜色和svg图案，以适应不同标签体系下颜色自定义。
 
 
 

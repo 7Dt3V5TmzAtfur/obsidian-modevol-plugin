@@ -210,3 +210,36 @@ a.mv-label{
     margin-left: 0;
     content: '';
 } */
+
+/* Settings Panel Styles */
+.modevol-label-setting {
+    padding: 16px;
+    margin: 12px 0;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    background-color: var(--background-secondary);
+}
+
+.modevol-label-setting h4 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: var(--text-normal);
+}
+
+.modevol-label-preview {
+    padding: 12px;
+    margin-top: 8px;
+    background-color: var(--background-primary);
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.modevol-preview-label {
+    display: inline-block;
+    font-size: var(--font-ui-small);
+}
+
+.modevol-preview-icon {
+    margin-top: 4px;
+}
+

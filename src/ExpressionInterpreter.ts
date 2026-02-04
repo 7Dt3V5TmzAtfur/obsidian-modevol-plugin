@@ -1,77 +1,64 @@
 import { Label } from "./Label";
+import { LabelConfig } from "./settings";
+
 // modevol 解释器
-
-// todo: 先做效果，做改匹配规则
 export default class ExpressionInterpreter {
-    static tag_reg = /^#([dsqevtc])(?=\s)(.*|$)/
+    static tag_reg = /^#([a-z])(?=\s)(.*|$)/i;
+    private labelConfigs: Map<string, LabelConfig>;
+
+    constructor(labelConfigs: LabelConfig[]) {
+        this.labelConfigs = new Map();
+        labelConfigs.forEach(config => {
+            if (config.enabled) {
+                this.labelConfigs.set(config.key, config);
+            }
+        });
+    }
+
     getLabel(regArray: RegExpExecArray): Label | undefined {
-        let tag = regArray[1].toLowerCase()
-        switch (tag) {
-            case 'd':
-			case 's':
-			case 'q':
-            case 'e':
-            case 'v':
-            case 't':
-                return normalInterpter(regArray)
-                break;
-            case 'c':
-                return customInterpret(regArray)
-                break
-            default:
+        let tag = regArray[1].toLowerCase();
+
+        // 检查是否是自定义标签 (#c)
+        if (tag === 'c') {
+            return this.customInterpret(regArray);
         }
-        return undefined
+
+        // 检查是否是配置中的标签
+        const config = this.labelConfigs.get(tag);
+        if (config) {
+            return this.normalInterpret(regArray, config);
+        }
+
+        return undefined;
     }
 
-}
-function normalInterpter(regArray: RegExpExecArray) {
-    let tag = regArray[1].toLowerCase()
-    let label = new Label()
-    switch (tag) {
-        case 'd':
-            label.type = "d"
-            label.tagName = "定义"
-            break
-		case 's':
-            label.type = "s"
-            label.tagName = "总结"
-            break
-        case 'q':
-            label.type = "q"
-            label.tagName = "提问"
-            break
-        case 'e':
-            label.type = "e"
-            label.tagName = "例子"
-            break
-        case 'v':
-            label.type = "v"
-            label.tagName = "验证"
-            break
-        case 't':
-            label.type = "t"
-            label.tagName = "迁移"
-            break
-        default:
-            return undefined;
-    }
-    label.text = regArray[0];
-    label.content = label.text.substring(2)
-    let list = label.content.trim().split(' ')
-    label.title = list.length > 0 ? list[0] : ''
-    label.relation = list.length > 1 ? list[1] : ''
-    return label
-}
-function customInterpret(regArray: RegExpExecArray) {
-    let label = new Label()
-    label.text = regArray[0]
-    label.type = 'c';
+    private normalInterpret(regArray: RegExpExecArray, config: LabelConfig): Label {
+        let label = new Label();
+        label.type = config.key;
+        label.tagName = config.name;
+        label.text = regArray[0];
+        label.content = label.text.substring(2);
 
-    let list = label.text.substring(2).trim().split(/\s+/)
-    if(list.length <0 || list[0].length == 0)return undefined
-    label.tagName = list.length > 0 ? list[0] : ""
-    label.title = list.length > 1 ? list[1] : ''
-    label.relation = list.length > 2 ? list[2] : ''
-    label.content = label.text.substring(3 + label.tagName.length)
-    return label
+        let list = label.content.trim().split(' ');
+        label.title = list.length > 0 ? list[0] : '';
+        label.relation = list.length > 1 ? list[1] : '';
+
+        return label;
+    }
+
+    private customInterpret(regArray: RegExpExecArray): Label | undefined {
+        let label = new Label();
+        label.text = regArray[0];
+        label.type = 'c';
+
+        let list = label.text.substring(2).trim().split(/\s+/);
+        if (list.length < 0 || list[0].length == 0) return undefined;
+
+        label.tagName = list.length > 0 ? list[0] : "";
+        label.title = list.length > 1 ? list[1] : '';
+        label.relation = list.length > 2 ? list[2] : '';
+        label.content = label.text.substring(3 + label.tagName.length);
+
+        return label;
+    }
 }

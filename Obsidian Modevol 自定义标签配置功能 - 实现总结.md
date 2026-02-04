@@ -1,0 +1,57 @@
+# Obsidian Modevol 自定义标签配置功能 - 实现总结
+# Obsidian Modevol plugin
+
+### 本版本修订 
+[x] 增加obsidian 插件配置面板，在obsidian插件面板中，自定义增加标签字母、对应的文本颜色和svg图案，以适应不同标签体系下颜色自定义。
+
+
+
+### Function：an Obsidian plugin for fit [modevol](https://www.modevol.com/) style.
+
+[x] Edit a state field for DETCV label.
+
+[ ] In the status bar, create a new block that displays the statistics of modevol.
+
+[ ] The label is associated with the title and show the tree of titles and labels.
+
+### View 
+
+#d Description 描述
+
+#c Custom 自定义
+
+#v Verification 验证    
+
+#e Example 例子 
+
+#t  Transfer 迁移     
+
+#s Summary  总结
+
+#q Question 提问
+
+![image](https://user-images.githubusercontent.com/12016782/218115364-1aaf0e6f-a14e-4614-afd2-4061e8d741c7.png)
+
+### Usage
+
+[#d title relation]
+
+[#e title relation]
+
+[#v title ]
+
+[#t title relation]
+
+[#c name title relation]
+
+### Installation
+
+-   Download the Latest Release from the Releases section of the GitHub Repository
+-   Extract the plugin folder from the zip to your vault's plugins folder: `<vault>/.obsidian/plugins/`  
+    Note: On some machines the `.obsidian` folder may be hidden. On MacOS you should be able to press `Command+Shift+Dot` to show the folder in Finder.
+-   Reload Obsidian
+-   If prompted about Safe Mode, you can disable safe mode and enable the plugin.
+    Otherwise head to Settings, third-party plugins, make sure safe mode is off and
+    enable the plugin from there.
+
+![image](https://user-images.githubusercontent.com/12016782/218239969-4f6687ff-d3f0-4fc3-be78-a2e447864530.png)

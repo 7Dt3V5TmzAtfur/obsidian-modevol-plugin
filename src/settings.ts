@@ -1,9 +1,10 @@
 export interface LabelConfig {
-    key: string;           // 标签字母，如 'd', 's', 'q'
-    name: string;          // 显示名称，如 "描述", "总结"
-    color: string;         // 文本颜色，十六进制格式
-    svgIcon: string;       // SVG 图标代码
-    enabled: boolean;      // 是否启用
+    key: string;
+    name: string;
+    color: string;
+    svgIcon: string;
+    enabled: boolean;
+    custom?: boolean;
 }
 
 export interface ModevolSettings {
@@ -36,14 +37,14 @@ export const DEFAULT_SETTINGS: ModevolSettings = {
         {
             key: 'e',
             name: '例子',
-            color: '#982ee4',
+            color: '#CD5255',
             svgIcon: `<svg fill="none" version="1.1" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em"><g><rect x="25.427" y="25.723" width="15.27" height="10.04" rx="2.83" fill="none" fill-opacity="0" stroke="#982ee4ff" stroke-width="3"></rect><rect x="16.526" y="13.009" width="15.27" height="10.174" rx="2.83" fill="none" fill-opacity="0" stroke="#982ee4ff" stroke-width="3"></rect><rect x="7.6262" y="25.723" width="15.27" height="10.04" rx="2.83" fill="none" fill-opacity="0" stroke="#982ee4ff" stroke-width="3"></rect><line x1="20.887" x2="27.445" y1="24.631" y2="24.631" fill="none" fill-opacity="0" stroke="#982ee4ff" stroke-width="5"></line></g></svg>`,
             enabled: true
         },
         {
             key: 'v',
             name: '验证',
-            color: '#7468D4',
+            color: '#5572F1',
             svgIcon: `<svg fill="none" version="1.1" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em"><path d="m24.254 24.312c0.91016-0.79687 1.5781-1.4102 1.793-1.6523 0.52344-0.69922 0.78906-1.5781 0.78906-2.6172 0-1.293-0.42968-2.3242-1.2812-3.0703-0.83203-0.74609-1.957-1.125-3.3477-1.125-1.5469 0-2.793 0.44922-3.7031 1.3359-0.92968 0.88672-1.3828 2.0938-1.3828 3.6875v0.13281h2.6172v-0.13281c0-0.85156 0.16406-1.5039 0.49219-1.9492 0.35937-0.53125 0.95703-0.78906 1.8281-0.78906 0.67578 0 1.1992 0.17968 1.5547 0.53515 0.35937 0.37891 0.54297 0.89063 0.54297 1.5195 0 0.48828-0.17578 0.95313-0.52344 1.3789l-0.23438 0.27734c-1.3711 1.2266-2.1719 2.0977-2.4453 2.6602-0.28906 0.55469-0.42578 1.2344-0.42578 2.0821v0.4219h2.6367v-0.4219c0-0.4649 0.09765-0.88283 0.29687-1.2813 0.19141-0.38672 0.45704-0.71875 0.79297-0.99219zm-2.418 3.4375c-0.48828 0-0.88671 0.1524-1.2266 0.4688-0.32812 0.3086-0.49609 0.7148-0.49609 1.2109 0 0.4961 0.16797 0.9024 0.49609 1.211 0.34766 0.3242 0.76172 0.4882 1.2266 0.4882 0.48438 0 0.88672-0.1523 1.2266-0.4687 0.33984-0.3164 0.51562-0.7422 0.51562-1.2305 0-0.4726-0.16406-0.8789-0.49609-1.2109-0.33594-0.3086-0.75391-0.4688-1.2461-0.4688z" fill="#7468D4"></path><path d="m38.991 37.397-4.5263-4.5224c2.3399-2.7773 3.75-6.3554 3.75-10.262 0-8.7968-7.1562-15.953-15.953-15.953-5.4492 0-10.469 2.7383-13.422 7.3281-0.11719 0.1836-0.23047 0.36719-0.33985 0.55469-0.30859 0.52734-0.59375 1.0781-0.83984 1.6406-0.33594 0.75776 0.007813 1.6485 0.76953 1.9805 0.75781 0.3359 1.6484-0.0078 1.9805-0.7695 0.19922-0.4532 0.42969-0.90237 0.67969-1.3282 0.08984-0.15235 0.17968-0.30078 0.27734-0.44922 2.4023-3.7266 6.4766-5.9531 10.898-5.9531 7.1367 0 12.945 5.8086 12.945 12.949 0 7.1367-5.8086 12.945-12.945 12.945-5.6992 0-10.805-3.8125-12.418-9.2734-0.23438-0.7969-1.0703-1.25-1.8672-1.0156-0.79687 0.2343-1.25 1.0703-1.0156 1.8672 1.9883 6.7304 8.2773 11.43 15.301 11.43 3.8086 0 7.3125-1.3437 10.059-3.582l4.542 4.5419c0.2929 0.293 0.6797 0.4415 1.0625 0.4415 0.3867 0 0.7695-0.1485 1.0624-0.4415 0.586-0.5898 0.586-1.539 0-2.1289z" fill="#7468D4"></path></svg>`,
             enabled: true
         },
@@ -57,9 +58,54 @@ export const DEFAULT_SETTINGS: ModevolSettings = {
         {
             key: 'c',
             name: '自定义',
-            color: '#CBC9CA',
+            color: '#C9C9C9',
             svgIcon: `<svg fill="none" version="1.1" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="1.3em" height="1.3em"><text x="50%" y="53%" dominant-baseline="middle" text-anchor="middle" font-size="14" font-weight="500" fill="#CBC9CA">{{Name}}</text><g fill="#CBC9CA"><path d="m5.1 27.3c-0.17828-3.1727-0.13149-6.354 0.14-9.52 0.045696-0.79223 0.34353-1.5491 0.85-2.16 0.53936-0.50138 1.1962-0.85902 1.91-1.04 0.62166-0.20775 1.261-0.35838 1.91-0.45l0.15 0.58c-1.0708 0.43913-2.0232 1.1243-2.78 2-0.38141 0.99402-0.55169 2.0566-0.5 3.12 0 2.2 0 5.31-0.08 7.49l-1.6-0.02z"></path><ellipse cx="9.9801" cy="14.43" rx=".3" ry=".3"></ellipse><path d="m6.7 20.71c0.07 2.17 0.08 5.3 0.08 7.5 0.05 0.91 0.05 2.47 0.5 3.11 0.34615 0.4178 0.74633 0.7877 1.19 1.1 0.49937 0.3428 1.0321 0.6342 1.59 0.87l-0.15 0.58c-1.53-0.29-3.32-0.53-4.24-2-0.89-2.38-0.59-4.97-0.67-7.39 0-1.26 0.07-2.51 0.1-3.77h1.6z"></path><ellipse cx="9.9801" cy="33.58" rx=".3" ry=".3"></ellipse><path d="m41.3 27.3c-0.08-2.17-0.09-5.29-0.08-7.49-0.06-0.91-0.06-2.47-0.51-3.12-0.34362-0.42019-0.74414-0.79042-1.19-1.1-0.50057-0.34081-1.0331-0.63217-1.59-0.87l0.15-0.59c1.53 0.29 3.32 0.53 4.24 2 0.89 2.35 0.6 4.94 0.65 7.37 0 1.25-0.04999 2.5-0.06999 3.76l-1.6 0.04z"></path><ellipse cx="38.01" cy="14.43" rx=".3" ry=".3"></ellipse><path d="m42.9 20.71c0.17 3.173 0.11988 6.3539-0.15 9.52-0.04704 0.795-0.34459 1.5546-0.85 2.17-0.5339 0.4843-1.18 0.828-1.88 1-0.63217 0.2045-1.2814 0.3518-1.94 0.44l-0.15-0.58c1.0742-0.433 2.0279-1.1192 2.78-2 0.37929-0.99131 0.55282-2.0495 0.51-3.11 0-2.21 0-5.32 0.08-7.5l1.6 0.059998z"></path><ellipse cx="38.01" cy="33.58" rx=".3" ry=".3"></ellipse></g></svg>`,
-            enabled: true
+            enabled: true,
+            custom: true
         }
     ]
 };
+
+export function mergeSettings(defaults: ModevolSettings, saved: unknown): ModevolSettings {
+    if (!saved || typeof saved !== "object") {
+        return defaults;
+    }
+    const anySaved = saved as Partial<ModevolSettings>;
+    const result: ModevolSettings = {
+        labels: []
+    };
+    const byKey = new Map<string, LabelConfig>();
+    defaults.labels.forEach(label => {
+        byKey.set(label.key, { ...label });
+    });
+    if (Array.isArray(anySaved.labels)) {
+        anySaved.labels.forEach(item => {
+            if (!item || typeof item !== "object") {
+                return;
+            }
+            const anyItem = item as Partial<LabelConfig>;
+            if (typeof anyItem.key !== "string" || anyItem.key.length !== 1) {
+                return;
+            }
+            const key = anyItem.key.toLowerCase();
+            const base = byKey.get(key) || {
+                key,
+                name: key,
+                color: "#999999",
+                svgIcon: "",
+                enabled: true
+            };
+            const merged: LabelConfig = {
+                key,
+                name: typeof anyItem.name === "string" ? anyItem.name : base.name,
+                color: typeof anyItem.color === "string" ? anyItem.color : base.color,
+                svgIcon: typeof anyItem.svgIcon === "string" ? anyItem.svgIcon : base.svgIcon,
+                enabled: typeof anyItem.enabled === "boolean" ? anyItem.enabled : base.enabled,
+                custom: typeof anyItem.custom === "boolean" ? anyItem.custom : base.custom
+            };
+            byKey.set(key, merged);
+        });
+    }
+    result.labels = Array.from(byKey.values());
+    return result;
+}

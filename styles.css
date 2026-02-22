@@ -6,32 +6,6 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
-:root {
-    --modevol-d-color: rgb(75, 153, 211);
-    --modevol-d-background-color: rgba(75, 153, 211, 0.3);
-
-	/* SeaGreen1	84 255 159	#54FF9F */
-	--modevol-s-color: rgb(84, 255, 159); 
-    --modevol-s-background-color: rgba(84, 255, 159, 0.3);
-
-	/* IndianRed1	255 106 106	#FF6A6A */
-	--modevol-q-color: rgb(255 106 106); 
-    --modevol-q-background-color: rgba(255 106 106, 0.3);
-
-	/* Purpul 158, 134, 200 #982ee4ff */
-    --modevol-e-color: rgb(158, 134, 200);
-    --modevol-e-background-color: rgba(158, 134, 200, 0.3);
-
-    --modevol-t-color: rgb(235, 171, 55);
-    --modevol-t-background-color: rgba(235, 172, 55, 0.3);
-
-    --modevol-v-color: rgb(85, 114, 241);
-    --modevol-v-background-color: rgba(85, 114, 241, 0.3);
-
-    --modevol-c-color: rgb(201, 201, 201);
-    --modevol-c-background-color: rgba(201, 201, 201, 0.3);
-}
-
 .mv-label {
     border-width: 1px;
     border-style: solid;
@@ -49,38 +23,6 @@ a.mv-label{
     color: var(--heading-formatting);
     border: 0 none;
     background-color: rgba(0,0,0,0);
-}
-
-.mv-label-d {
-    color: var(--modevol-d-color);
-    background-color: var(--modevol-d-background-color);
-    border-color: var(--modevol-d-color);
-}
-.mv-label-d:hover{
-    color: var(--modevol-d-color);
-}
-.mv-label-e {
-    color: var(--modevol-e-color);
-    background-color: var(--modevol-e-background-color);
-    border-color: var(--modevol-e-color);
-}
-
-.mv-label-t {
-    color: var(--modevol-t-color);
-    background-color: var(--modevol-t-background-color);
-    border-color: var(--modevol-t-color);
-}
-
-.mv-label-v {
-    color: var(--modevol-v-color);
-    background-color: var(--modevol-v-background-color);
-    border-color: var(--modevol-v-color);
-}
-
-.mv-label-c {
-    color: var(--modevol-c-color);
-    background-color: var(--modevol-c-background-color);
-    border-color: var(--modevol-c-color);
 }
 
 .mv-content-d {
@@ -242,4 +184,3 @@ a.mv-label{
 .modevol-preview-icon {
     margin-top: 4px;
 }
-

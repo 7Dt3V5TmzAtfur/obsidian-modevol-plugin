@@ -2,28 +2,47 @@ import { EditorView, WidgetType } from "@codemirror/view";
 import { MarkdownRenderChild } from "obsidian";
 import { Label } from "./Label";
 import { LabelConfig } from "./settings";
+import { sanitizeSvg } from "./sanitizeSvg";
 
-// 全局变量存储标签配置和图标映射
-let globalLabelConfigs: LabelConfig[] = [];
-let typeClassMap = new Map<string, string>();
+const typeClassMap = new Map<string, string>();
 let iconMap: Record<string, string> = {};
 let suffToClassMap: Record<string, string> = {};
+let customTagSet = new Set<string>();
+let labelConfigsMap: Map<string, LabelConfig> = new Map();
 
 export function setLabelConfigs(configs: LabelConfig[]) {
-  globalLabelConfigs = configs;
-
-  // 重新构建映射
   typeClassMap.clear();
   iconMap = {};
   suffToClassMap = {};
-
+  customTagSet = new Set<string>();
+  labelConfigsMap = new Map();
   configs.forEach(config => {
-    if (config.enabled) {
-      typeClassMap.set(config.key, `mv-label-${config.key}`);
-      iconMap[`#${config.key}`] = config.svgIcon;
-      suffToClassMap[`#${config.key}`] = ` mv-${config.key}`;
+    if (!config.enabled) {
+      return;
+    }
+    const key = config.key;
+    typeClassMap.set(key, `mv-label-${key}`);
+    const symbol = `#${key}`;
+    iconMap[symbol] = config.svgIcon;
+    suffToClassMap[symbol] = ` mv-${key}`;
+    labelConfigsMap.set(key, config);
+    if (config.custom) {
+      customTagSet.add(symbol);
     }
   });
+}
+
+export function isKnownTagSymbol(symbol: string): boolean {
+  return Object.prototype.hasOwnProperty.call(suffToClassMap, symbol);
+}
+
+export function isCustomTagSymbol(symbol: string): boolean {
+  return customTagSet.has(symbol);
+}
+
+export function getLabelColor(key: string): string {
+  const config = labelConfigsMap.get(key);
+  return config?.color || '';
 }
 
 export class ModelvolLabelWidget extends WidgetType {
@@ -34,12 +53,12 @@ export class ModelvolLabelWidget extends WidgetType {
     this.label = label
   }
   toDOM(view: EditorView): HTMLElement {
-    let tag = document.createElement("span");
-
-    const className = typeClassMap.get(this.label.type) || 'mv-label';
-    tag.className = 'mv-label ' + className;
-    tag.textContent = this.label.tagName
-    return tag
+    const tag = document.createElement("span");
+    const mapped = typeClassMap.get(this.label.type);
+    const className = mapped || "mv-label-" + this.label.type;
+    tag.className = "mv-label " + className;
+    tag.textContent = this.label.tagName;
+    return tag;
   }
 }
 export class ModevolLabelActiveWidget extends WidgetType {
@@ -50,15 +69,16 @@ export class ModevolLabelActiveWidget extends WidgetType {
   }
   toDOM(view: EditorView): HTMLElement {
 
-    let tagContent = ''
-    if (this.label.type != "c") {
-      tagContent = '#' + this.label.type;
-    } else {
-      tagContent = '#c ' + this.label.tagName;
+    const symbol = "#" + this.label.type;
+    const tagContent = isCustomTagSymbol(symbol)
+      ? symbol + " " + this.label.tagName
+      : symbol;
+    const tag = document.createElement("div");
+    tag.className = "mv-label-active ";
+    tag.textContent = tagContent;
+    if (this.label.color) {
+        tag.style.color = this.label.color;
     }
-    let tag = document.createElement('div');
-    tag.className = 'mv-label-active ';
-    tag.textContent = tagContent
     return tag;
   }
 }
@@ -69,9 +89,9 @@ export class ModevolTitleActiveWidget extends WidgetType {
     this.label = label
   }
   toDOM(view: EditorView): HTMLElement {
-    let el = document.createElement('div')
-    el.textContent = this.label.content
-    return el
+    const el = document.createElement("div");
+    el.textContent = this.label.content;
+    return el;
   }
 
 }
@@ -81,29 +101,35 @@ export class ModevolLabelRender extends MarkdownRenderChild {
   nextNode: Node;
   text: string;
   nextEl: Element | null;
-  constructor(containerEl: HTMLElement, nextNode: ChildNode, nextEl: Element | null) {
+  color: string;
+  constructor(containerEl: HTMLElement, nextNode: ChildNode, nextEl: Element | null, color: string = '') {
     super(containerEl);
 
     this.nextNode = nextNode;
     this.nextEl = nextEl
+    this.color = color
   }
 
   onload() {
     this.patchNextNode()
 
     const tag = this.containerEl.textContent
-    if (tag == '#c') {
+    if (tag && isCustomTagSymbol(tag)) {
       this.customLabel()
       return
     }
     this.normalLabel()
   }
   patchNextNode() {
-    if (!this.nextNode.nodeValue) return
+    if (!this.nextNode.nodeValue) {
+      return
+    }
     let nodeList = this.nextNode.nodeValue.split('\n')
     nodeList = nodeList.filter(value => { return value != '' })
     const titleContent = nodeList.first()
-    if (titleContent == undefined) return
+    if (titleContent == undefined) {
+      return
+    }
     nodeList.remove(titleContent)
     this.text = titleContent
 
@@ -133,7 +159,10 @@ export class ModevolLabelRender extends MarkdownRenderChild {
     title.className = 'mv-pre-title';
 
     const iconSvg = iconMap[this.containerEl.textContent] || '';
-    icon.innerHTML = iconSvg;
+    const sanitized = sanitizeSvg(iconSvg);
+    if (sanitized) {
+      icon.innerHTML = sanitized;
+    }
     title.textContent = this.text
 
     dom.appendChild(icon);
@@ -147,17 +176,23 @@ export class ModevolLabelRender extends MarkdownRenderChild {
       return
     }
 
-    let name = list.first()
+    const name = list.first()
     const title = list[1]
     if (name == undefined) return
     const tagIcon = ModevolLabelRender.CUSTOM_ICON.replace('{{Name}}', name)
+    const sanitized = sanitizeSvg(tagIcon);
 
 
     const dom = document.createElement("span");
     dom.className = 'mv-pre-label mv-c'
+    if (this.color) {
+        dom.style.color = this.color;
+    }
     const iconEl = document.createElement('div')
     iconEl.className = 'mv-pre-icon mv-pre-c'
-    iconEl.innerHTML = tagIcon
+    if (sanitized) {
+      iconEl.innerHTML = sanitized;
+    }
     const titleEl = document.createElement("span");
     titleEl.className = 'mv-pre-title';
     titleEl.textContent = title

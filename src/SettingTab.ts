@@ -1,6 +1,72 @@
-import { App, PluginSettingTab, Setting, Notice } from 'obsidian';
+import { App, PluginSettingTab, Setting, Notice, Modal } from 'obsidian';
 import ModevolPlugin from './main';
 import { LabelConfig } from './settings';
+import { hexToRgba } from './colorUtils';
+import { sanitizeSvg } from './sanitizeSvg';
+
+class InputLabelKeyModal extends Modal {
+    private result: string = '';
+    private defaultKeyVal;
+    private resolve: (value: string) => void;
+
+    constructor(app: App, defaultKey: string) {
+        super(app);
+        this.defaultKeyVal = defaultKey;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.createEl('h3', { text: '输入标签字母' });
+        contentEl.createEl('p', { text: `请输入单个英文字母（a-z），默认: ${this.defaultKeyVal}` });
+
+        const input = contentEl.createEl('input', {
+            type: 'text',
+            cls: 'modevol-key-input'
+        });
+        input.value = this.defaultKeyVal;
+        input.maxLength = 1;
+
+        const buttonContainer = contentEl.createDiv({ cls: 'modevol-modal-buttons' });
+        
+        const confirmBtn = buttonContainer.createEl('button', { text: '确定' });
+        const cancelBtn = buttonContainer.createEl('button', { text: '取消' });
+
+        confirmBtn.addEventListener('click', () => {
+            const value = input.value.toLowerCase().trim();
+            if (!value || value.length !== 1 || !/^[a-z]$/i.test(value)) {
+                new Notice('请输入单个英文字母');
+                return;
+            }
+            this.result = value;
+            this.close();
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            this.result = '';
+            this.close();
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                confirmBtn.click();
+            } else if (e.key === 'Escape') {
+                cancelBtn.click();
+            }
+        });
+
+        setTimeout(() => input.focus(), 100);
+    }
+
+    onClose() {
+        const { contentEl } = this;
+        contentEl.empty();
+        super.onClose();
+    }
+
+    getResult(): string {
+        return this.result;
+    }
+}
 
 export class ModevolSettingTab extends PluginSettingTab {
     plugin: ModevolPlugin;
@@ -78,6 +144,19 @@ export class ModevolSettingTab extends PluginSettingTab {
                     this.plugin.refreshStyles();
                 }));
 
+        // 自定义模式开关
+        new Setting(settingDiv)
+            .setName('自定义模式')
+            .setDesc('自定义模式的标签会显示用户指定的名称，而非固定的显示名称')
+            .addToggle(toggle => toggle
+                .setValue(label.custom || false)
+                .onChange(async (value) => {
+                    this.plugin.settings.labels[index].custom = value;
+                    await this.plugin.saveSettings();
+                    this.plugin.refreshStyles();
+                    this.display(); // 重新渲染界面
+                }));
+
         // 标签字母
         new Setting(settingDiv)
             .setName('标签字母')
@@ -105,29 +184,39 @@ export class ModevolSettingTab extends PluginSettingTab {
                     this.display(); // 重新显示以更新标题
                 }));
 
-        // 显示名称
-        new Setting(settingDiv)
-            .setName('显示名称')
-            .setDesc('标签的中文名称，如"描述"、"总结"')
-            .addText(text => text
-                .setPlaceholder('输入显示名称')
-                .setValue(label.name)
-                .onChange(async (value) => {
-                    this.plugin.settings.labels[index].name = value;
-                    await this.plugin.saveSettings();
-                }));
+        // 显示名称 - 非自定义模式时显示
+        if (!label.custom) {
+            new Setting(settingDiv)
+                .setName('显示名称')
+                .setDesc('标签的中文名称，如"描述"、"总结"')
+                .addText(text => text
+                    .setPlaceholder('输入显示名称')
+                    .setValue(label.name)
+                    .onChange(async (value) => {
+                        this.plugin.settings.labels[index].name = value;
+                        await this.plugin.saveSettings();
+                    }));
+        }
 
         // 颜色选择
+        // 预览区域
+        const previewDiv = settingDiv.createDiv({ cls: 'modevol-label-preview' });
+        this.updatePreview(previewDiv, label);
+        
         new Setting(settingDiv)
             .setName('文本颜色')
             .setDesc('标签的文本颜色')
             .addColorPicker(color => color
                 .setValue(label.color)
                 .onChange(async (value) => {
+                    if (!validateColorValue(value)) {
+                        new Notice('请输入有效的十六进制颜色值（如 #FF0000）');
+                        return;
+                    }
                     this.plugin.settings.labels[index].color = value;
                     await this.plugin.saveSettings();
                     this.plugin.refreshStyles();
-                    this.updatePreview(settingDiv, this.plugin.settings.labels[index]);
+                    this.updatePreview(previewDiv, this.plugin.settings.labels[index]);
                 }));
 
         // SVG 图标
@@ -140,16 +229,12 @@ export class ModevolSettingTab extends PluginSettingTab {
                     .onChange(async (value) => {
                         this.plugin.settings.labels[index].svgIcon = value;
                         await this.plugin.saveSettings();
-                        this.updatePreview(settingDiv, this.plugin.settings.labels[index]);
+                        this.updatePreview(previewDiv, this.plugin.settings.labels[index]);
                     });
                 text.inputEl.rows = 4;
                 text.inputEl.style.fontFamily = 'monospace';
                 text.inputEl.style.fontSize = '12px';
             });
-
-        // 预览
-        const previewDiv = settingDiv.createDiv({ cls: 'modevol-label-preview' });
-        this.updatePreview(previewDiv, label);
 
         // 删除按钮
         new Setting(settingDiv)
@@ -183,53 +268,60 @@ export class ModevolSettingTab extends PluginSettingTab {
         previewSpan.style.borderRadius = '3px';
         previewSpan.style.padding = '2px 6px';
         previewSpan.style.marginLeft = '8px';
-        previewSpan.style.backgroundColor = this.hexToRgba(label.color, 0.1);
+        previewSpan.style.backgroundColor = hexToRgba(label.color, 0.1);
 
         // 显示图标预览
         if (label.svgIcon) {
             const iconDiv = containerEl.createDiv({ cls: 'modevol-preview-icon' });
-            iconDiv.innerHTML = label.svgIcon;
+            const sanitized = sanitizeSvg(label.svgIcon);
+            if (sanitized) {
+                iconDiv.innerHTML = sanitized;
+            }
             iconDiv.style.marginTop = '8px';
         }
     }
 
-    hexToRgba(hex: string, alpha: number): string {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
-
     addNewLabel(): void {
-        // 找到一个未使用的字母
         const usedKeys = new Set(this.plugin.settings.labels.map(l => l.key));
-        let newKey = '';
-        for (let i = 97; i <= 122; i++) { // a-z
+        const availableKeys: string[] = [];
+        for (let i = 97; i <= 122; i++) {
             const char = String.fromCharCode(i);
             if (!usedKeys.has(char)) {
-                newKey = char;
-                break;
+                availableKeys.push(char);
             }
         }
 
-        if (!newKey) {
+        if (availableKeys.length === 0) {
             new Notice('已达到最大标签数量（26个）');
             return;
         }
 
-        const newLabel: LabelConfig = {
-            key: newKey,
-            name: '新标签',
-            color: '#999999',
-            svgIcon: `<svg fill="none" version="1.1" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em"><circle cx="24" cy="24" r="12" fill="none" stroke="#999999" stroke-width="3"></circle></svg>`,
-            enabled: true
-        };
+        const modal = new InputLabelKeyModal(this.app, availableKeys[0]);
+        modal.open();
 
-        this.plugin.settings.labels.push(newLabel);
-        this.plugin.saveSettings();
-        this.plugin.refreshStyles();
-        this.display();
-        new Notice(`已添加新标签 #${newKey}`);
+        modal.onClose = () => {
+            const key = modal.getResult();
+            if (!key) return;
+
+            if (usedKeys.has(key)) {
+                new Notice('该标签字母已存在');
+                return;
+            }
+
+            const newLabel: LabelConfig = {
+                key: key,
+                name: '新标签',
+                color: '#999999',
+                svgIcon: `<svg fill="none" version="1.1" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em"><circle cx="24" cy="24" r="12" fill="none" stroke="#999999" stroke-width="3"></circle></svg>`,
+                enabled: true
+            };
+
+            this.plugin.settings.labels.push(newLabel);
+            this.plugin.saveSettings();
+            this.plugin.refreshStyles();
+            this.display();
+            new Notice(`已添加新标签 #${key}`);
+        };
     }
 
     exportSettings(): void {
@@ -255,16 +347,13 @@ export class ModevolSettingTab extends PluginSettingTab {
             try {
                 const text = await file.text();
                 const imported = JSON.parse(text);
-
-                // 验证数据格式
-                if (!imported.labels || !Array.isArray(imported.labels)) {
+                const validated = validateImportedSettings(imported);
+                if (!validated) {
                     new Notice('无效的配置文件格式');
                     return;
                 }
-
-                // 确认导入
                 if (confirm('导入配置将覆盖当前设置，是否继续？')) {
-                    this.plugin.settings = imported;
+                    this.plugin.settings = validated;
                     await this.plugin.saveSettings();
                     this.plugin.refreshStyles();
                     this.display();
@@ -277,4 +366,42 @@ export class ModevolSettingTab extends PluginSettingTab {
         };
         input.click();
     }
+}
+
+function validateColorValue(value: unknown): value is string {
+    if (typeof value !== 'string') {
+        return false;
+    }
+    return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value.trim());
+}
+
+export function validateImportedSettings(raw: unknown): { labels: LabelConfig[] } | null {
+    if (!raw || typeof raw !== 'object') {
+        return null;
+    }
+    const anyRaw = raw as { labels?: unknown };
+    if (!Array.isArray(anyRaw.labels)) {
+        return null;
+    }
+    const result: LabelConfig[] = [];
+    for (const item of anyRaw.labels) {
+        if (!item || typeof item !== 'object') {
+            continue;
+        }
+        const anyItem = item as Partial<LabelConfig>;
+        if (typeof anyItem.key !== 'string' || anyItem.key.length !== 1 || !/^[a-z]$/i.test(anyItem.key)) {
+            continue;
+        }
+        const key = anyItem.key.toLowerCase();
+        const name = typeof anyItem.name === 'string' ? anyItem.name : key;
+        const color = validateColorValue(anyItem.color) ? anyItem.color : '#999999';
+        const svgSource = typeof anyItem.svgIcon === 'string' ? anyItem.svgIcon : '';
+        const svgIcon = svgSource ? sanitizeSvg(svgSource) : '';
+        const enabled = typeof anyItem.enabled === 'boolean' ? anyItem.enabled : true;
+        result.push({ key, name, color, svgIcon, enabled });
+    }
+    if (result.length === 0) {
+        return null;
+    }
+    return { labels: result };
 }
